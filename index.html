@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="th">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แปลรหัสตัวเลขและตัวอักษร</title>
+
+    <!-- PWA Meta Tags -->
+    <link rel="manifest" href="/manifest.json"> <!-- เพิ่มไฟล์ PWA manifest -->
+    <meta name="theme-color" content="#4CAF50">
+    <meta name="apple-mobile-web-app-title" content="แปลรหัส">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Favicons สำหรับ iOS, Android และอื่นๆ -->
+    <link rel="icon" href="/favicon.ico" type="image/x-icon">
+    <link rel="apple-touch-icon" href="/icons/apple-icon.png">
+    <link rel="icon" sizes="192x192" href="/icons/android-icon.png">
+
+    <head>
+        <link rel="manifest" href="/manifest.json">
+        <meta name="theme-color" content="#4CAF50">
+        <meta name="apple-mobile-web-app-title" content="แปลรหัส">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="mobile-web-app-capable" content="yes">
+        <link rel="icon" href="/favicon.ico" type="image/x-icon">
+        <link rel="apple-touch-icon" href="/icons/apple-icon.png">
+        <link rel="icon" sizes="192x192" href="/icons/android-icon.png">
+    </head>
+    
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #000000;
+        }
+
+        label {
+            font-size: 18px;
+            margin-right: 10px;
+            display: block;
+        }
+
+        input, select {
+            font-size: 18px;
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        button {
+            font-size: 16px;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+        }
+
+        .translation-box {
+            border: 1px solid #ccc;
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            min-height: 50px;
+            max-width: 500px;
+            margin: 0 auto;
+            background-color: #f9f9f9;
+        }
+
+        #back-button {
+            background-color: #f44336; /* สีแดงสำหรับปุ่มย้อนกลับ */
+            margin-top: 20px;
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+
+            input, select, button {
+                width: 100%;
+                font-size: 16px;
+            }
+
+            .translation-box {
+                width: 90%;
+                max-width: 400px;
+            }
+
+            h1 {
+                font-size: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- หน้าแรก (เลือกชุดคำสั่ง) -->
+    <div id="first-page">
+        <h1>เลือกชุดคำสั่ง/รหัส</h1>
+        
+        <label for="code-selection">เลือกชุดคำสั่ง</label>
+        <select id="code-selection">
+            <option value="01">01</option>
+            <option value="02">02</option>
+        </select>
+
+        <button id="next-button" onclick="goToTranslation()">ต่อไป</button>
+    </div>
+
+    <!-- หน้าที่สอง (แปลตัวเลขและตัวอักษร) -->
+    <div id="second-page" style="display: none;">
+        <h1>แปลรหัส</h1>
+
+        <label for="input-text">กรอกตัวเลขหรืออักษรที่ต้องการแปล:</label>
+        <input type="text" id="input-text" placeholder="กรอกตัวเลขหรืออักษร" maxlength="20">
+        <button onclick="translateInput()">แปล</button>
+
+        <!-- แสดงผลการแปล -->
+        <div class="translation-box" id="translation-result"></div>
+
+        <!-- ปุ่มย้อนกลับ -->
+        <button id="back-button" onclick="goBack()">ย้อนกลับ</button>
+    </div>
+
+    <script>
+        // แผนที่แปลตัวเลขเป็นอักษร (ชุดที่ 1)
+        const translationMap1 = {
+            "89": "น",
+            "80": "ณ",
+            "82": "ข",
+            "87": "ิ",
+            "81": "ำ",
+            "86": "ต",
+            "88": "ป",
+            "84": "ฑ",
+            "85": "ย",
+            "83": "ช",
+        };
+
+        // แผนที่แปลตัวเลขเป็นอักษร (ชุดที่ 2)
+        const translationMap2 = {
+            "62": "น",
+            "67": "ณ",
+            "61": "ข",
+            "66": "ิ",
+            "68": "ำ",
+            "64": "ต",
+            "65": "ป",
+            "63": "ฑ",
+            "62": "ย",
+            "67": "ชฃ"
+        };
+
+        // แผนที่แปลตัวอักษรเป็นตัวเลข (ชุดที่ 1)
+        const reverseTranslationMap1 = {
+            "น": "89",
+            "ณ": "80",
+            "ข": "82",
+            "ิ": "87",
+            "ำ": "81",
+            "ต": "86",
+            "ป": "88",
+            "ฑ": "84",
+            "ย": "85",
+            "ช": "83"
+        };
+
+        // แผนที่แปลตัวอักษรเป็นตัวเลข (ชุดที่ 2)
+        const reverseTranslationMap2 = {
+            "น": "62",
+            "ณ": "67",
+            "ข": "61",
+            "ิ": "66",
+            "ำ": "68",
+            "ต": "64",
+            "ป": "65",
+            "ฑ": "63",
+            "ย": "62",
+            "ชฃ": "67"
+        };
+
+        // ฟังก์ชันที่ไปยังหน้าที่ 2
+        function goToTranslation() {
+            document.getElementById("first-page").style.display = "none";
+            document.getElementById("second-page").style.display = "block";
+        }
+
+        // ฟังก์ชันย้อนกลับไปหน้ากรอกข้อมูล
+        function goBack() {
+            document.getElementById("second-page").style.display = "none";
+            document.getElementById("first-page").style.display = "block";
+        }
+
+        // ฟังก์ชันแปลตัวเลขและตัวอักษร
+        function translateInput() {
+            const inputText = document.getElementById("input-text").value.trim();
+            const resultBox = document.getElementById("translation-result");
+            const selectedCode = document.getElementById("code-selection").value;
+
+            let result = '';
+            let valid = true;
+            let translationMap, reverseTranslationMap;
+
+            // เลือกแผนที่แปลตามชุดคำสั่งที่เลือก
+            if (selectedCode === "01") {
+                translationMap = translationMap1;
+                reverseTranslationMap = reverseTranslationMap1;
+            } else if (selectedCode === "02") {
+                translationMap = translationMap2;
+                reverseTranslationMap = reverseTranslationMap2;
+            }
+
+            // ถ้าเป็นตัวเลข
+            if (/^\d+$/.test(inputText)) {
+                let numbers = inputText.match(/.{2}/g);  // แยกเลขสองตัว
+                numbers.forEach(num => {
+                    if (translationMap[num]) {
+                        result += translationMap[num];
+                    } else {
+                        valid = false;
+                    }
+                });
+            } 
+            // ถ้าเป็นอักษร
+            else if (/^[a-zA-Zก-๙]+$/.test(inputText)) {
+                let letters = inputText.split('');
+                let translatedNumbers = [];
+                
+                letters.forEach(letter => {
+                    if (reverseTranslationMap[letter]) {
+                        translatedNumbers.push(reverseTranslationMap[letter]);
+                    } else {
+                        valid = false;
+                    }
+                });
+
+                result = translatedNumbers.join('');
+                if (result.length > 8) {
+                    result = result.replace(/(\d{8})(?=\d)/g, '$1,');
+                }
+            }
+            else {
+                valid = false;
+            }
+
+            if (valid) {
+                resultBox.textContent = result;
+            } else {
+                resultBox.textContent = "กรุณากรอกตัวเลขหรืออักษรที่ถูกต้อง";
+            }
+        }
+
+        // ลงทะเบียน Service Worker สำหรับการทำงานออฟไลน์
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js')
+                .then(function(registration) {
+                    console.log('Service Worker registered with scope: ', registration.scope);
+                })
+                .catch(function(error) {
+                    console.log('Service Worker registration failed: ', error);
+                });
+        }
+        if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+        .then(function(registration) {
+            console.log('Service Worker registered with scope: ', registration.scope);
+        })
+        .catch(function(error) {
+            console.log('Service Worker registration failed: ', error);
+        });
+}
+   
+    </script>
+
+</body>
+</html>
